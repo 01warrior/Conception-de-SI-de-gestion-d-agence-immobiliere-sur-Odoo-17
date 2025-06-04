@@ -33,6 +33,7 @@ class ResPartnerPropertyExtension(models.Model): # Nom de classe descriptif
     preferred_location_notes = fields.Text(string='Notes sur Localisation Préférée')
     
     preferred_property_type_id = fields.Many2one('property.type', string='Type de Propriété Préféré')
+    mandate_ids_as_owner = fields.One2many('property.mandate', 'owner_id', string='Mandats en tant que Propriétaire')
     
     min_surface_desired = fields.Float(string='Surface Minimum Désirée (m²)')
     min_rooms_desired = fields.Integer(string='Nombre de Pièces Minimum Désiré')

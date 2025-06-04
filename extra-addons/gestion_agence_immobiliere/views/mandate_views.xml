@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue Formulaire pour PropertyMandate -->
+    <record id="view_property_mandate_form" model="ir.ui.view">
+        <field name="name">property.mandate.form</field>
+        <field name="model">property.mandate</field>
+        <field name="arch" type="xml">
+            <form string="Mandat de Propriété">
+                <header>
+                    <button name="action_activate" string="Activer" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_mark_sold_rented" string="Marquer Vendu/Loué" type="object" class="oe_highlight" invisible="state != 'active'"/>
+                    <button name="action_terminate" string="Résilier" type="object" invisible="state not in ['draft', 'active']"/>
+                    <button name="action_reset_to_draft" string="Remettre en Brouillon" type="object" invisible="state not in ['terminated', 'expired', 'completed_other_way']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,sold_rented_under_mandate,completed_other_way,expired,terminated"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                        <h2><field name="name" placeholder="Nom du Mandat (ex: Mandat Vente - Villa Vue Mer)"/></h2>
+                    </div>
+                    <group>
+                        <group string="Informations Clés">
+                            <field name="property_id" options="{'no_create_edit': True}"/>
+                            <field name="owner_id"/>
+                            <field name="agent_id"/>
+                            <field name="mandate_type"/>
+                            <field name="transaction_type"/>
+                        </group>
+                        <group string="Durée et Dates">
+                            <field name="start_date"/>
+                            <field name="duration_months"/>
+                            <field name="end_date"/>
+                        </group>
+                    </group>
+                    <group string="Conditions Financières">
+                         <group>
+                            <field name="mandate_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" invisible="1"/>
+                         </group>
+                         <group>
+                            <field name="commission_rate"/>
+                            <field name="commission_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                         </group>
+                    </group>
+                    <notebook>
+                        <page string="Conditions du Mandat" name="mandate_conditions">
+                            <field name="conditions" placeholder="Entrez ici les conditions particulières du mandat..."/>
+                        </page>
+                        <page string="Notes Internes" name="internal_notes">
+                            <field name="notes" placeholder="Notes pour usage interne..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vue Liste (Tree) pour PropertyMandate -->
+    <record id="view_property_mandate_tree" model="ir.ui.view">
+        <field name="name">property.mandate.tree</field>
+        <field name="model">property.mandate</field>
+        <field name="arch" type="xml">
+            <tree string="Mandats de Propriété" decoration-info="state=='draft'" decoration-success="state=='active'" decoration-danger="state=='expired' or state=='terminated'" decoration-muted="state=='completed_other_way' or state=='sold_rented_under_mandate'">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="owner_id" optional="show"/>
+                <field name="agent_id"/>
+                <field name="mandate_type"/>
+                <field name="start_date"/>
+                <field name="end_date"/>
+                <field name="mandate_price" sum="Total Mandat" optional="show"/>
+                <field name="commission_amount" sum="Total Commission" optional="show"/>
+                <field name="currency_id" invisible="1"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vue Recherche pour PropertyMandate -->
+    <record id="view_property_mandate_search" model="ir.ui.view">
+        <field name="name">property.mandate.search</field>
+        <field name="model">property.mandate</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher des Mandats">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="owner_id"/>
+                <field name="agent_id"/>
+                <field name="mandate_type"/>
+                <filter string="Actifs" name="active_mandates" domain="[('state', '=', 'active')]"/>
+                <filter string="Expirés" name="expired_mandates" domain="[('state', '=', 'expired')]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Agent Responsable" name="groupby_agent" context="{'group_by': 'agent_id'}"/>
+                    <filter string="Propriété" name="groupby_property" context="{'group_by': 'property_id'}"/>
+                    <filter string="État" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="Type de Mandat" name="groupby_mandate_type" context="{'group_by': 'mandate_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

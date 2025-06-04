@@ -49,6 +49,7 @@ class Property(models.Model):
     # Relations
     owner_id = fields.Many2one('res.partner', string='Propriétaire', required=True, domain=[('is_property_owner', '=', True)]) 
     agent_id = fields.Many2one('res.users', string='Agent Responsable', default=lambda self: self.env.user)
+    mandate_ids = fields.One2many('property.mandate', 'property_id', string="Mandats Associés")
     
     # État
     state = fields.Selection([

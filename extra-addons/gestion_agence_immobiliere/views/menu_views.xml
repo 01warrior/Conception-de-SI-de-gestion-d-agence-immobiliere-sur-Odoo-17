@@ -21,6 +21,21 @@
         </field>
     </record>
 
+    <!-- Action pour PropertyMandate -->
+    <record id="action_property_mandate" model="ir.actions.act_window">
+        <field name="name">Mandats</field>
+        <field name="res_model">property.mandate</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_property_mandate_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créez votre premier mandat !
+            </p><p>
+                Gérez ici tous les mandats signés avec les propriétaires.
+            </p>
+        </field>
+    </record>
+
     <!-- Menu Principal -->
     <menuitem id="menu_real_estate_root"
         name="Gestion Immobilière"
@@ -32,11 +47,19 @@
         name="Biens Immobiliers"
         parent="menu_real_estate_root"
         sequence="10"/>
+
     <menuitem id="menu_item_property" 
         name="Propriétés"
         parent="menu_real_estate_properties_main"
         action="action_property"
         sequence="10"/>
+
+        <!-- un sous-menu pour les Mandats -->
+    <menuitem id="menu_property_mandates"
+        name="Mandats"
+        parent="menu_real_estate_root"
+        action="action_property_mandate"
+        sequence="20"/> 
 
     <!-- Sous-menu Configuration -->
     <menuitem id="menu_real_estate_config"
@@ -44,6 +67,7 @@
         parent="menu_real_estate_root"
         sequence="100"
         groups="gestion_agence_immobiliere.group_real_estate_manager"/>
+        
     <menuitem id="menu_item_property_type"
         name="Types de Propriété"
         parent="menu_real_estate_config"

@@ -47,8 +47,7 @@ class Property(models.Model):
     country_id = fields.Many2one('res.country', string='Pays')
     
     # Relations
-    owner_id = fields.Many2one('res.partner', string='Propriétaire') # required=False (temporairement), domain commenté
-    # owner_id = fields.Many2one('res.partner', string='Propriétaire', required=True, domain=[('is_property_owner', '=', True)]) # On réactivera ça plus tard
+    owner_id = fields.Many2one('res.partner', string='Propriétaire', required=True, domain=[('is_property_owner', '=', True)]) 
     agent_id = fields.Many2one('res.users', string='Agent Responsable', default=lambda self: self.env.user)
     
     # État
@@ -69,8 +68,8 @@ class Property(models.Model):
     # visit_count = fields.Integer('Nombre de Visites', compute='_compute_visit_count')
     
     # Images
-    image_main = fields.Image('Image Principale')
-    # image_ids = fields.One2many('property.image', 'property_id', string='Images')
+    image_main = fields.Image('Image Principale', help="Image principale affichée dans les listes et kanbans.")
+    image_ids = fields.One2many('property.image', 'property_id', string='Images')
     
     @api.model
     def create(self, vals):
@@ -108,8 +107,17 @@ class Property(models.Model):
 class PropertyImage(models.Model):
     _name = 'property.image'
     _description = 'Images Propriété'
+    _order = 'sequence, id' # Pour trier par séquence et ID
+
+    name = fields.Char('Titre/Description Image')
+    sequence = fields.Integer('Séquence', default=10) # champ pour definir l'ordre d'affichage des images
     
-    property_id = fields.Many2one('property.property', string='Propriété', ondelete='cascade')
+    property_id = fields.Many2one('property.property', string='Propriété',required=True, ondelete='cascade')
     image = fields.Image('Image', required=True)
     name = fields.Char('Nom')
-    is_main = fields.Boolean('Image Principale')
+    is_main_image = fields.Boolean(
+        string="Est l'image principale de la galerie ?", 
+        default=False,
+        help="Cochez cette case si cette image doit être considérée comme l'image principale pour la galerie de cette propriété. "
+             "Cela pourrait mettre à jour l'image principale affichée sur la propriété elle-même."
+    )

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_property_extension" model="ir.ui.view">
+        <field name="name">res.partner.form.property.extension</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/> <!-- On hérite de la vue formulaire de base des contacts -->
+        <field name="arch" type="xml">
+            <!-- Ajouter un nouvel onglet 'Informations Immobilières' -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Immobilier" name="real_estate_info">
+                    <group>
+                        <group string="Rôle Immobilier">
+                            <field name="is_property_owner"/>
+                            <field name="is_potential_buyer"/>
+                            <field name="is_potential_renter"/>
+                            <field name="client_type"/>
+                        </group>
+                        <group string="Préférences de Recherche">
+                            <field name="preferred_property_type_id"/>
+                            <field name="preferred_location_city"/>
+                            <field name="preferred_location_notes"/>
+                            <label for="budget_min" string="Budget Préféré"/>
+                            <div class="o_row">
+                                <field name="budget_min" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id_partner_pref'}"/>
+                                <span> - </span>
+                                <field name="budget_max" nolabel="1" widget="monetary" options="{'currency_field': 'currency_id_partner_pref'}"/>
+                                <field name="currency_id_partner_pref"/> <!-- Afficher la devise pour la sélection -->
+                            </div>
+                            <field name="min_surface_desired"/>
+                            <field name="min_rooms_desired"/>
+                            <field name="min_bedrooms_desired"/>
+                        </group>
+                    </group>
+                    <!-- Section pour les One2many (propriétés possédées, visites, etc.) à ajouter plus tard -->
+                    <!-- 
+                    <group string="Historique Immobilier (sera rempli plus tard)">
+                        <separator string="Propriétés Possédées"/>
+                        <field name="owned_property_ids" nolabel="1" readonly="1">
+                            <tree>
+                                <field name="reference"/>
+                                <field name="title"/>
+                                <field name="state"/>
+                            </tree>
+                        </field>
+                    </group>
+                    -->
+                </page>
+            </xpath>
+
+            <!-- Optionnel: Ajouter certains champs booléens directement sous la section 'Commercial' pour une meilleure visibilité -->
+            <xpath expr="//page[@name='sales_purchases']//group[@name='misc']" position="after">
+                 <group string="Statut Immobilier (Raccourci)" name="quick_real_estate_status" col="4">
+                    <field name="is_property_owner"/>
+                    <field name="is_potential_buyer"/>
+                    <field name="is_potential_renter"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

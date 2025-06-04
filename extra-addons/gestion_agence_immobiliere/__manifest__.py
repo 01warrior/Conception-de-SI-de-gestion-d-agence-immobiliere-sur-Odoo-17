@@ -27,7 +27,7 @@
         # 'purchase', 
         # 'account', 
         # 'calendar',
-        # 'contacts'
+        'contacts'
     ],
 
     # always loaded
@@ -37,6 +37,7 @@
         'data/sequences.xml',
         # 'views/views.xml',
         # 'views/templates.xml',
+        'views/client_views.xml',
         'views/property_views.xml',
         'views/menu_views.xml',
     ],

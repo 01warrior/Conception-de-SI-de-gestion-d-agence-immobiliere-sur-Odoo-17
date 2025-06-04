@@ -1,4 +1,38 @@
 <odoo>
+
+    <!-- Vue Formulaire pour PropertyImage -->
+    <record id="view_property_image_tree_inline" model="ir.ui.view">
+        <field name="name">property.image.tree.inline</field>
+        <field name="model">property.image</field>
+        <field name="arch" type="xml">
+            <tree string="Images de la Propriété" editable="bottom"> <!-- editable="bottom" pour ajout/modif en ligne -->
+                <field name="sequence" widget="handle"/> <!-- Pour le drag-and-drop et l'ordre -->
+                <field name="image" widget="image" options="{'size': [50, 50]}"/> <!-- Petit aperçu -->
+                <field name="name"/>
+                <field name="is_main_image"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vue Formulaire pour PropertyImage si on veux un popup (détail) -->
+    <record id="view_property_image_form" model="ir.ui.view">
+        <field name="name">property.image.form</field>
+        <field name="model">property.image</field>
+        <field name="arch" type="xml">
+            <form string="Détail Image Propriété">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="property_id" readonly="1" force_save="1" options="{'no_create': True, 'no_open': True}"/> <!-- Lié, non modifiable ici -->
+                        <field name="sequence"/>
+                        <field name="is_main_image"/>
+                    </group>
+                    <field name="image" widget="image" class="oe_avatar"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <!-- Vue Formulaire pour PropertyType -->
     <record id="view_property_type_form" model="ir.ui.view">
         <field name="name">property.type.form</field>
@@ -95,6 +129,33 @@
         </field>
     </record>
 
+    <!-- Vue Formulaire pour Property avec extension pour les images -->
+    <record id="view_property_form_with_images_extension" model="ir.ui.view"> <!-- On référence l'ID de la vue existante -->
+        <field name="name">property.property.form.with.images</field> 
+        <field name="model">property.property</field>
+        <field name="inherit_id" ref="gestion_agence_immobiliere.view_property_form"/> <!-- Hériter de la vue de base -->
+        <field name="arch" type="xml">
+            <!--  l'onglet "Galerie d'Images" -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Galerie d'Images" name="property_images_gallery">
+                    <field name="image_ids" nolabel="1">
+                        <tree string="Images de la Propriété" editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="image" widget="image" options="{'size': [80, 80]}"/>
+                            <field name="name"/>
+                            <field name="is_main_image"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            
+            <xpath expr="//field[@name='image_main']" position="attributes">
+                <attribute name="invisible">0</attribute>
+            </xpath>
+        </field>
+    </record>
+
+
     <!-- Vue Liste pour Property -->
     <record id="view_property_tree" model="ir.ui.view">
         <field name="name">property.property.tree</field>
@@ -113,10 +174,11 @@
         </field>
     </record>
 
-    <!-- Vue Kanban pour Property (simple pour commencer) -->
+    <!-- Vue Kanban pour Property -->
     <record id="view_property_kanban" model="ir.ui.view">
         <field name="name">property.property.kanban</field>
         <field name="model">property.property</field>
+        
         <field name="arch" type="xml">
             <kanban default_group_by="state">
                 <field name="state"/>
@@ -125,14 +187,18 @@
                 <field name="property_type_id"/>
                 <field name="sale_price"/>
                 <field name="currency_id"/>
-                <!-- <field name="image_main"/> Si vous utilisez le champ image_main directement sur property.property -->
+                <field name="image_main"/>
+  
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
-                            <!-- Si vous avez un champ image_main sur property.property : -->
-                            <!-- <div class="o_kanban_image">
+                            <!-- notre champ image_main sur property.property : -->
+                        
+                            <div class="o_kanban_image"> <!-- Cette section affiche l'image -->
                                 <img t-att-src="kanban_image('property.property', 'image_main', record.id.raw_value)" alt="Propriété"/>
-                            </div> -->
+                            </div>
+
+                            
                             <div class="oe_kanban_details">
                                 <strong><field name="title"/></strong>
                                 <div>Réf: <field name="reference"/></div>

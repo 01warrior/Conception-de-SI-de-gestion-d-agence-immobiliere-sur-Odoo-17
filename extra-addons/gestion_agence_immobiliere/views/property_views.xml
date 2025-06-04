@@ -1,0 +1,172 @@
+<odoo>
+    <!-- Vue Formulaire pour PropertyType -->
+    <record id="view_property_type_form" model="ir.ui.view">
+        <field name="name">property.type.form</field>
+        <field name="model">property.type</field>
+        <field name="arch" type="xml">
+            <form string="Type de Propriété">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vue Liste pour PropertyType -->
+    <record id="view_property_type_tree" model="ir.ui.view">
+        <field name="name">property.type.tree</field>
+        <field name="model">property.type</field>
+        <field name="arch" type="xml">
+            <tree string="Types de Propriété">
+                <field name="name"/>
+                <field name="description"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vue Formulaire pour Property -->
+    <record id="view_property_form" model="ir.ui.view">
+        <field name="name">property.property.form</field>
+        <field name="model">property.property</field>
+        <field name="arch" type="xml">
+            <form string="Propriété">
+                <header>
+                    <button name="action_make_available" string="Rendre Disponible" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_reserve" string="Réserver" type="object" class="oe_highlight" invisible="state != 'available'"/>
+                    <button name="action_sold" string="Marquer Vendu" type="object" invisible="state not in ['available', 'reserved']"/>
+                    <button name="action_rented" string="Marquer Loué" type="object" invisible="state not in ['available', 'reserved']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,available,reserved,sold,rented,cancelled"/>
+                </header>
+                <sheet>
+                    <field name="image_main" widget="image" class="oe_avatar" invisible="1"/> <!-- On le rend invisible pour l'instant si PropertyImage est utilisé plus tard, ou on le laisse si c'est l'image principale unique -->
+                    <div class="oe_title">
+                        <h1><field name="title" placeholder="Ex: Appartement T3 Vue Mer"/></h1>
+                    </div>
+                    <group>
+                        <group string="Informations Générales">
+                            <field name="reference"/>
+                            <field name="property_type_id"/>
+                            <field name="transaction_type"/>
+                            <field name="agent_id"/>
+                            <field name="owner_id"/>
+                        </group>
+                        <group string="Prix">
+                            <field name="sale_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="rent_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description et Caractéristiques">
+                            <field name="description" placeholder="Description détaillée du bien..."/>
+                            <group>
+                                <group>
+                                    <field name="surface"/>
+                                    <field name="rooms"/>
+                                    <field name="bedrooms"/>
+                                </group>
+                                <group>
+                                    <field name="bathrooms"/>
+                                    <field name="floor"/>
+                                    <field name="available_date"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Adresse">
+                            <group>
+                                <field name="street"/>
+                                <field name="city"/>
+                                <field name="zip_code"/>
+                                <field name="country_id"/>
+                            </group>
+                        </page>
+                        <!-- Onglet pour PropertyImage sera ajouté plus tard si vous l'utilisez -->
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vue Liste pour Property -->
+    <record id="view_property_tree" model="ir.ui.view">
+        <field name="name">property.property.tree</field>
+        <field name="model">property.property</field>
+        <field name="arch" type="xml">
+            <tree string="Propriétés">
+                <field name="reference"/>
+                <field name="title"/>
+                <field name="property_type_id"/>
+                <field name="transaction_type"/>
+                <field name="sale_price" optional="show"/>
+                <field name="rent_price" optional="show"/>
+                <field name="city" optional="hide"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vue Kanban pour Property (simple pour commencer) -->
+    <record id="view_property_kanban" model="ir.ui.view">
+        <field name="name">property.property.kanban</field>
+        <field name="model">property.property</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="state"/>
+                <field name="title"/>
+                <field name="reference"/>
+                <field name="property_type_id"/>
+                <field name="sale_price"/>
+                <field name="currency_id"/>
+                <!-- <field name="image_main"/> Si vous utilisez le champ image_main directement sur property.property -->
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click">
+                            <!-- Si vous avez un champ image_main sur property.property : -->
+                            <!-- <div class="o_kanban_image">
+                                <img t-att-src="kanban_image('property.property', 'image_main', record.id.raw_value)" alt="Propriété"/>
+                            </div> -->
+                            <div class="oe_kanban_details">
+                                <strong><field name="title"/></strong>
+                                <div>Réf: <field name="reference"/></div>
+                                <div><field name="property_type_id"/></div>
+                                <div t-if="record.sale_price.raw_value">
+                                    Prix: <field name="sale_price" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Vue Recherche pour Property -->
+    <record id="view_property_search" model="ir.ui.view">
+        <field name="name">property.property.search</field>
+        <field name="model">property.property</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher Propriétés">
+                <field name="title" string="Titre"/>
+                <field name="reference"/>
+                <field name="property_type_id"/>
+                <field name="city"/>
+                <filter string="Disponible" name="available" domain="[('state', '=', 'available')]"/>
+                <filter string="À Vendre" name="for_sale" domain="[('transaction_type', 'in', ['sale', 'both'])]"/>
+                <filter string="À Louer" name="for_rent" domain="[('transaction_type', 'in', ['rent', 'both'])]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Type de Propriété" name="groupby_property_type" context="{'group_by': 'property_type_id'}"/>
+                    <filter string="État" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="Ville" name="groupby_city" context="{'group_by': 'city'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

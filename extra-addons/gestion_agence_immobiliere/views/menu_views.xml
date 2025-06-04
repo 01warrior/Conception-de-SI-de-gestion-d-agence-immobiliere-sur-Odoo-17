@@ -1,0 +1,52 @@
+<odoo>
+    <!-- Action pour PropertyType -->
+    <record id="action_property_type" model="ir.actions.act_window">
+        <field name="name">Types de Propriété</field>
+        <field name="res_model">property.type</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Action pour Property -->
+    <record id="action_property" model="ir.actions.act_window">
+        <field name="name">Propriétés</field>
+        <field name="res_model">property.property</field>
+        <field name="view_mode">kanban,tree,form</field> <!-- Kanban en premier par défaut -->
+        <field name="search_view_id" ref="view_property_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créez votre première propriété !
+            </p><p>
+                Gérez ici toutes les propriétés de votre agence immobilière.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Principal -->
+    <menuitem id="menu_real_estate_root"
+        name="Gestion Immobilière"
+        web_icon="gestion_agence_immobiliere,static/description/icon.png"
+        sequence="10"/>
+
+    <!-- Sous-menu Biens -->
+    <menuitem id="menu_real_estate_properties_main" 
+        name="Biens Immobiliers"
+        parent="menu_real_estate_root"
+        sequence="10"/>
+    <menuitem id="menu_item_property" 
+        name="Propriétés"
+        parent="menu_real_estate_properties_main"
+        action="action_property"
+        sequence="10"/>
+
+    <!-- Sous-menu Configuration -->
+    <menuitem id="menu_real_estate_config"
+        name="Configuration"
+        parent="menu_real_estate_root"
+        sequence="100"
+        groups="gestion_agence_immobiliere.group_real_estate_manager"/>
+    <menuitem id="menu_item_property_type"
+        name="Types de Propriété"
+        parent="menu_real_estate_config"
+        action="action_property_type"
+        sequence="10"/>
+</odoo>

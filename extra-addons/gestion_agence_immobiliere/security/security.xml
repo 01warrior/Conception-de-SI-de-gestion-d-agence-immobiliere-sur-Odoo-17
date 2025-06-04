@@ -1,0 +1,21 @@
+<odoo>
+    <data noupdate="1">
+        <record model="ir.module.category" id="module_category_real_estate">
+            <field name="name">Gestion Immobilière</field>
+            <field name="description">Droits d'accès pour le module de Gestion Immobilière.</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="group_real_estate_user" model="res.groups">
+            <field name="name">Utilisateur Agence Immobilière</field>
+            <field name="category_id" ref="module_category_real_estate"/>
+        </record>
+
+        <record id="group_real_estate_manager" model="res.groups">
+            <field name="name">Manager Agence Immobilière</field>
+            <field name="category_id" ref="module_category_real_estate"/>
+            <field name="implied_ids" eval="[(4, ref('group_real_estate_user'))]"/>
+            <field name="users" eval="[(4, ref('base.user_root')), (4, ref('base.user_admin'))]"/>
+        </record>
+    </data>
+</odoo>

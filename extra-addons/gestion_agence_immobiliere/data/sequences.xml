@@ -17,6 +17,15 @@
             <field name="company_id" eval="False"/>
         </record>
 
+         <!--  SÉQUENCE POUR LES VISITES -->
+        <record id="seq_property_visit" model="ir.sequence">
+            <field name="name">Séquence Visite Propriété</field>
+            <field name="code">property.visit.sequence</field> <!-- Doit correspondre au code dans le Python -->
+            <field name="prefix">VISIT/</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
 
     </data>
 </odoo>

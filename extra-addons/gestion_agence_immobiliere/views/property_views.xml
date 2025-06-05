@@ -74,6 +74,16 @@
                     <button name="action_rented" string="Marquer Loué" type="object" invisible="state not in ['available', 'reserved']"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,available,reserved,sold,rented,cancelled"/>
                 </header>
+
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_view_visits"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-calendar-check-o"> <!-- Ou une autre icône FontAwesome -->
+                        <field name="visit_count" widget="statinfo" string="Visites"/>
+                    </button>
+                </div>
+
                 <sheet>
                     <field name="image_main" widget="image" class="oe_avatar" invisible="1"/> <!-- On le rend invisible pour l'instant si PropertyImage est utilisé plus tard, ou on le laisse si c'est l'image principale unique -->
                     <div class="oe_title">

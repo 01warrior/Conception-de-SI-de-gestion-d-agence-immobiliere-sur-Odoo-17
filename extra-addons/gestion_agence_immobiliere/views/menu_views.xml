@@ -67,10 +67,18 @@
         parent="menu_real_estate_root"
         sequence="100"
         groups="gestion_agence_immobiliere.group_real_estate_manager"/>
-        
+
     <menuitem id="menu_item_property_type"
         name="Types de Propriété"
         parent="menu_real_estate_config"
         action="action_property_type"
         sequence="10"/>
+
+
+    <!-- un sous-menu pour les Visites -->
+    <menuitem id="menu_property_visits"
+        name="Visites"
+        parent="menu_real_estate_root"
+        action="action_property_visit"
+        sequence="30"/>
 </odoo>

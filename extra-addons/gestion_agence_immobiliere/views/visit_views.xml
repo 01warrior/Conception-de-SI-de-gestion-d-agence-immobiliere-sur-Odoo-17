@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    
+
+    <!-- Vue Formulaire pour PropertyVisit -->
+    <record id="view_property_visit_form" model="ir.ui.view">
+        <field name="name">property.visit.form</field>
+        <field name="model">property.visit</field>
+        <field name="arch" type="xml">
+            <form string="Détail de la Visite">
+                <header>
+                    <button name="action_schedule" string="Planifier" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_confirm" string="Confirmer Visite" type="object" class="oe_highlight" invisible="state not in ['draft','scheduled']"/>
+                    <button name="action_start_visit" string="Démarrer Visite" type="object" class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <button name="action_complete" string="Terminer Visite" type="object" class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_no_show_client" string="Client Absent" type="object" invisible="state not in ['confirmed', 'in_progress']"/>
+                    <button name="action_cancel_client" string="Annuler (Client)" type="object" invisible="state in ['completed', 'cancelled_client', 'cancelled_agency', 'no_show_client']"/>
+                    <button name="action_cancel_agency" string="Annuler (Agence)" type="object" invisible="state in ['completed', 'cancelled_client', 'cancelled_agency', 'no_show_client']"/>
+                    <button name="action_reset_to_draft" string="Remettre en Brouillon" type="object" invisible="state not in ['scheduled', 'cancelled_client', 'cancelled_agency', 'no_show_client']"/>
+                    <button name="action_view_calendar_event" string="Voir Calendrier" type="object" invisible="not calendar_event_id"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,scheduled,confirmed,in_progress,completed,no_show_client,cancelled_client,cancelled_agency"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="reference" readonly="1"/></h1>
+                        <h2><field name="name" placeholder="Objet de la visite..."/></h2>
+                    </div>
+                    <group>
+                        <group string="Détails de la Visite">
+                            <field name="property_id" options="{'no_create_edit': True}"/>
+                            <field name="client_id" options="{'no_create_edit': True}"/>
+                            <field name="agent_id" options="{'no_create_edit': True}"/>
+                            <field name="visit_type"/>
+                        </group>
+                        <group string="Planification">
+                            <field name="visit_date"/>
+                            <field name="duration"/>
+                            <field name="calendar_event_id" readonly="1" invisible="1"/> <!-- Juste pour info technique -->
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Feedback et Suivi" name="feedback_follow_up">
+                            <group>
+                                <group string="Feedback Client (après visite)">
+                                    <field name="client_rating" widget="priority"/> <!-- Ou 'radio' -->
+                                    <field name="client_interested"/>
+                                    <field name="client_feedback" placeholder="Commentaires du client..."/>
+                                </group>
+                                <group string="Suivi (si intéressé)">
+                                    <field name="follow_up_needed" readonly="1"/>
+                                    <field name="follow_up_date" invisible="not follow_up_needed"/>
+                                    <field name="follow_up_notes" placeholder="Notes pour le prochain contact..." invisible="not follow_up_needed"/>
+                                </group>
+                            </group>
+                            <group string="Notes de l'Agent">
+                                 <field name="agent_notes" placeholder="Observations, points importants..."/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vue Liste (Tree) pour PropertyVisit -->
+    <record id="view_property_visit_tree" model="ir.ui.view">
+        <field name="name">property.visit.tree</field>
+        <field name="model">property.visit</field>
+        <field name="arch" type="xml">
+            <tree string="Visites de Propriétés" decoration-info="state=='draft' or state=='scheduled'" decoration-success="state=='confirmed' or state=='in_progress'" decoration-bf="state=='completed' and client_interested==True" decoration-danger="state=='cancelled_client' or state=='cancelled_agency' or state=='no_show_client'">
+                <field name="reference"/>
+                <field name="name" optional="hide"/>
+                <field name="property_id"/>
+                <field name="client_id"/>
+                <field name="agent_id"/>
+                <field name="visit_date"/>
+                <field name="duration" optional="hide"/>
+                <field name="state"/>
+                <field name="client_interested" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vue Calendrier pour PropertyVisit -->
+    <record id="view_property_visit_calendar" model="ir.ui.view">
+        <field name="name">property.visit.calendar</field>
+        <field name="model">property.visit</field>
+        <field name="arch" type="xml">
+            <calendar string="Calendrier des Visites"
+                      date_start="visit_date"
+                      date_delay="duration"
+                      color="agent_id"
+                      mode="month"
+                      event_open_popup="true"> 
+                <field name="name"/> 
+                <field name="property_id"/>
+                <field name="client_id"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- Vue Recherche pour PropertyVisit -->
+    <record id="view_property_visit_search" model="ir.ui.view">
+        <field name="name">property.visit.search</field>
+        <field name="model">property.visit</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher des Visites">
+                <field name="reference"/>
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="client_id"/>
+                <field name="agent_id"/>
+                <filter string="Aujourd'hui" name="today" domain="[('visit_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00')), ('visit_date', '&lt;=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter string="Confirmées" name="confirmed_visits" domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Terminées" name="completed_visits" domain="[('state', '=', 'completed')]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Agent" name="groupby_agent" context="{'group_by': 'agent_id'}"/>
+                    <filter string="Propriété" name="groupby_property" context="{'group_by': 'property_id'}"/>
+                    <filter string="Client" name="groupby_client" context="{'group_by': 'client_id'}"/>
+                    <filter string="État" name="groupby_state" context="{'group_by': 'state'}"/>
+                    <filter string="Mois de Visite" name="groupby_visit_month" context="{'group_by': 'visit_date:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+
+
+    <!-- Action pour PropertyVisit -->
+    <record id="action_property_visit" model="ir.actions.act_window">
+        <field name="name">Visites Planifiées</field>
+        <field name="res_model">property.visit</field>
+        <field name="view_mode">calendar,tree,form</field>
+        <field name="search_view_id" ref="view_property_visit_search"/>
+        <field name="context">{'search_default_today': 1}</field> <!-- filtre par défaut sur "Aujourd'hui" -->
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Planifiez votre première visite !
+            </p><p>
+                Organisez et suivez toutes les visites de propriétés pour vos clients.
+            </p>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,24 @@
+<odoo>
+    <data noupdate="0"> <!-- noupdate="0" pour que les templates puissent être modifiés depuis l'interface -->
+        <record id="email_template_property_visit_confirmation" model="mail.template">
+            <field name="name">Visite Propriété : Email de Confirmation</field>
+            <field name="model_id" ref="gestion_agence_immobiliere.model_property_visit"/>
+            <field name="subject">Confirmation de votre visite pour la propriété : ${object.property_id.name}</field>
+            <field name="email_to">${object.client_id.email_formatted | safe}</field>
+            <field name="body_html"><![CDATA[
+                <p>Bonjour ${object.client_id.name},</p>
+                <p>Nous vous confirmons votre visite pour la propriété <strong>${object.property_id.name}</strong> (Réf: ${object.property_id.reference}).</p>
+                <p>
+                    Date et Heure : <strong>${object.visit_date}</strong> (Durée estimée: ${object.duration}h).<br/>
+                    Adresse : ${object.property_id.street or ''}, ${object.property_id.zip_code or ''} ${object.property_id.city or ''}.
+                </p>
+                <p>Votre agent accompagnateur sera : ${object.agent_id.name}.</p>
+                <p>En cas d'empêchement, merci de nous prévenir au plus tôt.</p>
+                <p>Cordialement,</p>
+                <p>L'équipe de ${object.company_id.name or 'votre Agence Immobilière'}</p>
+            ]]></field>
+            <field name="lang">${object.client_id.lang}</field>
+            <field name="auto_delete" eval="True"/>
+        </record>
+    </data>
+</odoo>

@@ -65,8 +65,8 @@ class Property(models.Model):
     available_date = fields.Date('Disponible à partir du')
     
     # Visites
-    # visit_ids = fields.One2many('property.visit', 'property_id', string='Visites')
-    # visit_count = fields.Integer('Nombre de Visites', compute='_compute_visit_count')
+    visit_ids = fields.One2many('property.visit', 'property_id', string='Visites Programmées')
+    visit_count = fields.Integer('Nombre de Visites', compute='_compute_visit_count',store=True) #store pour stocker le résultat dans la base de données
     
     # Images
     image_main = fields.Image('Image Principale', help="Image principale affichée dans les listes et kanbans.")
@@ -98,15 +98,15 @@ class Property(models.Model):
     def action_view_visits(self):
         return {
             'type': 'ir.actions.act_window',
-            'name': 'Visites',
+            'name': _('Visites pour %s') % self.title,
             'res_model': 'property.visit',
-            'view_mode': 'tree,form',
+            'view_mode': 'tree,form,calendar',
             'domain': [('property_id', '=', self.id)],
-            'context': {'default_property_id': self.id}
+            'context': {'default_property_id': self.id,'default_agent_id': self.agent_id.id if self.agent_id else self.env.user.id}
         }
 
 class PropertyImage(models.Model):
-    _name = 'property.image'
+    _name = 'property.image' 
     _description = 'Images Propriété'
     _order = 'sequence, id' # Pour trier par séquence et ID
 

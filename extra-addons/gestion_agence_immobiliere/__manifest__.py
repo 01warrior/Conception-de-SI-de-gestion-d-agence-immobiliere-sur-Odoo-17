@@ -26,7 +26,7 @@
         # 'sale', 
         # 'purchase', 
         # 'account', 
-        # 'calendar',
+        'calendar',
         'contacts'
     ],
 
@@ -35,8 +35,10 @@
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/sequences.xml',
+        'data/mail_templates.xml',
         'views/client_views.xml',
         'views/mandate_views.xml',
+        'views/visit_views.xml',
         'views/property_views.xml',
         'views/menu_views.xml',
     ],

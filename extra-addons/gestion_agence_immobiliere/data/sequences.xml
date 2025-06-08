@@ -27,5 +27,15 @@
         </record>
 
 
+        <!-- SÉQUENCE POUR LES OFFRES -->
+        <record id="seq_property_offer" model="ir.sequence">
+        <field name="name">Séquence Offre Propriété</field>
+        <field name="code">property.offer.sequence</field>
+        <field name="prefix">OFFER/</field>
+        <field name="padding">6</field>
+        <field name="company_id" eval="False"/>
+        </record>
+
+
     </data>
 </odoo>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1"> <!-- noupdate="1" pour ne pas l'écraser aux mises à jour s'il a été modifié manuellement -->
+
+        <record id="product_commission_sale" model="product.product">
+            <field name="name">Commission de Vente Immobilière</field>
+            <field name="detailed_type">service</field> <!-- Très important: type de produit -->
+            <field name="invoice_policy">order</field> <!-- Facturer basé sur les quantités commandées -->
+            <field name="list_price">0.0</field> <!-- Le prix sera défini dynamiquement -->
+            <field name="standard_price">0.0</field> <!-- Coût, si applicable -->
+            <field name="categ_id" ref="product.product_category_all"/> <!-- Catégorie de base -->
+            <!-- Vous pouvez ajouter une catégorie spécifique si vous en avez une pour les services -->
+            <field name="taxes_id" eval="False"/> <!-- Pas de taxes par défaut, à gérer selon la fiscalité -->
+            <field name="description_sale">Commission pour services de vente immobilière.</field>
+        </record>
+
+        <record id="product_commission_rent" model="product.product">
+            <field name="name">Commission de Location Immobilière</field>
+            <field name="detailed_type">service</field>
+            <field name="invoice_policy">order</field>
+            <field name="list_price">0.0</field>
+            <field name="standard_price">0.0</field>
+            <field name="categ_id" ref="product.product_category_all"/>
+            <field name="taxes_id" eval="False"/>
+            <field name="description_sale">Commission pour services de location immobilière.</field>
+        </record>
+
+    </data>
+</odoo>

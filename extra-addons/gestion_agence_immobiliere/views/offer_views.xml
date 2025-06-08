@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue Formulaire pour PropertyOffer -->
+    <record id="view_property_offer_form" model="ir.ui.view">
+        <field name="name">property.offer.form</field>
+        <field name="model">property.offer</field>
+        <field name="arch" type="xml">
+            <form string="Offre sur Propriété">
+                <header>
+                    <button name="action_submit_offer" string="Soumettre Offre" type="object" class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_start_negotiation" string="Démarrer Négociation" type="object" invisible="state != 'submitted'"/>
+                    <button name="action_accept_offer" string="Accepter Offre" type="object" class="oe_highlight" invisible="state not in ['submitted', 'negotiation']"/>
+                    <button name="action_refuse_offer" string="Refuser Offre" type="object" invisible="state not in ['accepted', 'refused', 'cancelled']"/>
+                    <button name="action_cancel_offer" string="Annuler Offre" type="object" invisible="state not in ['accepted', 'refused', 'cancelled']"/>
+                    <button name="action_reset_to_draft" string="Remettre en Brouillon" type="object" invisible="state in ['draft', 'accepted']"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,negotiation,accepted,refused"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="property_id" options="{'no_create_edit': True}"/>
+                            <field name="partner_id" options="{'no_create_edit': True}"/>
+                        </group>
+                        <group>
+                            <field name="offer_price"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="offer_date"/>
+                            <field name="validity_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Notes et Conditions" name="notes_conditions">
+                            <field name="notes" placeholder="Conditions spécifiques de l'offre, détails..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Vue Liste (Tree) pour PropertyOffer -->
+    <record id="view_property_offer_tree" model="ir.ui.view">
+        <field name="name">property.offer.tree</field>
+        <field name="model">property.offer</field>
+        <field name="arch" type="xml">
+            <tree string="Offres sur Propriétés" decoration-success="state=='accepted'" decoration-danger="state=='refused' or state=='cancelled'" decoration-muted="state=='draft'">
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="partner_id"/>
+                <field name="offer_price"/>
+                <field name="offer_date"/>
+                <field name="validity_date" optional="hide"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Vue Recherche pour PropertyOffer -->
+    <record id="view_property_offer_search" model="ir.ui.view">
+        <field name="name">property.offer.search</field>
+        <field name="model">property.offer</field>
+        <field name="arch" type="xml">
+            <search string="Rechercher des Offres">
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="partner_id"/>
+                <filter string="Acceptées" name="accepted_offers" domain="[('state', '=', 'accepted')]"/>
+                <filter string="Soumises" name="submitted_offers" domain="[('state', '=', 'submitted')]"/>
+                <group expand="0" string="Grouper par">
+                    <filter string="Propriété" name="groupby_property" context="{'group_by': 'property_id'}"/>
+                    <filter string="Client" name="groupby_client" context="{'group_by': 'partner_id'}"/>
+                    <filter string="État" name="groupby_state" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action pour PropertyOffer -->
+    <record id="action_property_offer" model="ir.actions.act_window">
+        <field name="name">Offres sur Propriétés</field>
+        <field name="res_model">property.offer</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_property_offer_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Créez votre première offre !
+            </p><p>
+                Suivez ici toutes les offres faites par les clients pour les propriétés.
+            </p>
+        </field>
+    </record>
+</odoo>

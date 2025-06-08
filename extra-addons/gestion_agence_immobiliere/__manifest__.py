@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 {
     'name': "gestion_agence_immobiliere",
 
@@ -23,6 +22,7 @@
     'depends': [
         'base', 
         'mail',
+        'sale_management',
         # 'sale', 
         # 'purchase', 
         # 'account', 
@@ -35,11 +35,13 @@
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/sequences.xml',
+        'data/product_data.xml',
         'data/mail_templates.xml',
         'views/client_views.xml',
         'views/property_views.xml',
         'views/mandate_views.xml',
         'views/visit_views.xml',
+        'views/offer_views.xml',
         'views/menu_views.xml',
     ],
     # only loaded in demonstration mode

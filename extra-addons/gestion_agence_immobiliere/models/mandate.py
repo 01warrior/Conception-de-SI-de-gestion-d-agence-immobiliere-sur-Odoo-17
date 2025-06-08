@@ -29,11 +29,28 @@ class PropertyMandate(models.Model):
         tracking=True
     )
 
+    company_id = fields.Many2one(
+        'res.company', 
+        string='Compagnie', 
+        default=lambda self: self.env.company, # Compagnie de l'utilisateur par défaut
+        required=True, # Souvent requis pour la cohérence des données
+        readonly=True, # Souvent en lecture seule après création ou lié à d'autres logiques
+        states={'draft': [('readonly', False)]} # Exemple pour le rendre modifiable en brouillon
+    )
+
     owner_id = fields.Many2one(
         related='property_id.owner_id', # Se remplit automatiquement depuis la propriété
         string='Propriétaire du Bien', 
         store=True, # la valeur récupérée est aussi stockée dans la base de données Important pour la recherche et le regroupement
         readonly=True # On ne peut pas modifier le propriétaire depuis le mandat
+    )
+
+    sale_order_id = fields.Many2one(
+        'sale.order', 
+        string='Commande de Commission', 
+        readonly=True, 
+        copy=False,
+        tracking=True # C'est bien de suivre quand il est lié
     )
 
     agent_id = fields.Many2one(
@@ -152,9 +169,97 @@ class PropertyMandate(models.Model):
             if mandate.property_id.state == 'draft':
                 mandate.property_id.action_make_available() 
 
+    # Déclenche la création de la commande de commission
     def action_mark_sold_rented(self):
+        self.ensure_one() # S'assurer qu'on travaille sur un seul mandat à la fois pour cette action     
+        if self.state == 'sold_rented_under_mandate' and self.sale_order_id:raise UserError(_("La commission a déjà été générée pour ce mandat."))    
+
         self.write({'state': 'sold_rented_under_mandate'})
-        # Ici, plus tard (Phase 8), on déclenchera la création de la commande de vente pour la commission
+        self.message_post(body=_(f"Le mandat est maintenant marqué comme '{self.state}'. Préparation de la génération de la commission."))
+
+        # Déclencher la création de la commande de commission.ici on vas retourner pour que l'utilisateur soit redirigé vers la commande
+        return self.action_generate_commission_sale_order() 
+
+
+    def action_generate_commission_sale_order(self): # Cette méthode est celle de la Phase 8
+        self.ensure_one()
+        if self.sale_order_id:
+            # Rediriger vers la commande existante au lieu de lever une erreur ou permettre la création multiple
+            return {
+                'type': 'ir.actions.act_window',
+                'res_model': 'sale.order',
+                'view_mode': 'form',
+                'res_id': self.sale_order_id.id,
+                'target': 'current',
+                'flags': {'form': {'action_buttons': True, 'options': {'mode': 'edit'}}}
+            }
+       
+
+        # On s'assure que l'état est bien celui qui permet la facturation
+        if self.state != 'sold_rented_under_mandate':
+            raise UserError(_("La commission ne peut être générée que pour un mandat à l'état 'Vendu/Loué (sous ce mandat)'."))
+            
+        if not self.owner_id:
+            raise UserError(_("Le propriétaire n'est pas défini sur ce mandat."))
+            
+        # Utiliser la commission déjà calculée et stockée
+        if self.commission_amount <= 0:
+            raise UserError(_("Le montant de la commission calculé est de zéro ou négatif. Vérifiez les prix et taux sur le mandat."))
+        
+        product_to_invoice = False
+        # Assurez-vous que property_id.transaction_type est fiable ou utilisez transaction_type sur le mandat
+        transaction_type_to_use = self.transaction_type
+
+        if transaction_type_to_use == 'sale':
+            product_to_invoice = self.env.ref('gestion_agence_immobiliere.product_commission_sale', raise_if_not_found=False)
+        elif transaction_type_to_use == 'rent':
+            product_to_invoice = self.env.ref('gestion_agence_immobiliere.product_commission_rent', raise_if_not_found=False)
+        elif transaction_type_to_use == 'both':
+            # Si c'est 'both' sur le mandat, cela signifie que la propriété pouvait être vendue OU louée.
+            # Maintenant, nous devons savoir si la transaction finale (celle qui a mis la propriété à 'sold' ou 'rented')
+            # était une vente ou une location.
+            
+            # On se base sur l'état ACTUEL de la propriété liée au mandat
+            if self.property_id.state == 'sold':
+                 product_to_invoice = self.env.ref('gestion_agence_immobiliere.product_commission_sale', raise_if_not_found=False)
+                 self.message_post(body=_("Mandat 'both' : Commission de VENTE générée car la propriété est marquée comme 'Vendu'."))
+            elif self.property_id.state == 'rented':
+                 product_to_invoice = self.env.ref('gestion_agence_immobiliere.product_commission_rent', raise_if_not_found=False)
+                 self.message_post(body=_("Mandat 'both' : Commission de LOCATION générée car la propriété est marquée comme 'Loué'."))
+            else:
+                raise UserError(_("Pour un mandat de type 'Vente et Location', impossible de déterminer la commission car l'état final de la propriété ('%s') n'est ni 'Vendu' ni 'Loué'.") % self.property_id.state)
+
+        if not product_to_invoice:
+            # Cette erreur sera maintenant plus spécifique si le cas 'both' n'a pas pu être résolu
+            raise UserError(_("Produit de commission non trouvé pour le type de transaction du mandat ('%s') ou l'état final de la propriété. Vérifiez data/product_data.xml et l'état de la propriété.") % transaction_type_to_use)
+        
+
+        order_line_vals = [(0, 0, {
+            'product_id': product_to_invoice.id,
+            'name': f"{product_to_invoice.name} - Propriété: {self.property_id.display_name or 'N/A'} (Mandat: {self.reference or 'N/A'})",
+            'product_uom_qty': 1,
+            'price_unit': self.commission_amount,
+        })]
+
+        sale_order_vals = {
+            'partner_id': self.owner_id.id,
+            'order_line': order_line_vals,
+            'origin': self.reference, 
+            'company_id': self.company_id.id if self.company_id else self.env.company.id,
+            'note': f"Commission relative au mandat {self.reference} pour la propriété {self.property_id.display_name}."
+        }
+            
+        so = self.env['sale.order'].create(sale_order_vals)
+        self.sale_order_id = so.id
+        self.message_post(body=_(f"Commande de commission <a href='#' data-oe-model='sale.order' data-oe-id='{so.id}'>{so.name}</a> créée."))
+        
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'sale.order',
+            'view_mode': 'form',
+            'res_id': so.id,
+            'target': 'current',
+        }
 
     def action_terminate(self):
         self.write({'state': 'terminated'})

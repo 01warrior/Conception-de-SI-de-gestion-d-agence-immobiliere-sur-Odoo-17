@@ -81,4 +81,10 @@
         parent="menu_real_estate_root"
         action="action_property_visit"
         sequence="30"/>
+
+        <menuitem id="menu_item_property_offer"
+        name="Offres"
+        parent="menu_real_estate_root"
+        action="action_property_offer"
+        sequence="30"/>
 </odoo>

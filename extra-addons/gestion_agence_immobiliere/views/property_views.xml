@@ -72,6 +72,7 @@
                     <button name="action_reserve" string="Réserver" type="object" class="oe_highlight" invisible="state != 'available'"/>
                     <button name="action_sold" string="Marquer Vendu" type="object" invisible="state not in ['available', 'reserved']"/>
                     <button name="action_rented" string="Marquer Loué" type="object" invisible="state not in ['available', 'reserved']"/>
+                    <button name="action_create_mandate_for_reserved_property" string="Créer Mandat car reservé" type="object" class="oe_highlight" invisible="state != 'reserved'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,available,reserved,sold,rented,cancelled"/>
                 </header>
 

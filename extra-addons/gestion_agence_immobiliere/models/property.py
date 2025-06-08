@@ -1,5 +1,5 @@
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 class PropertyType(models.Model):
     _name = 'property.type'
@@ -68,10 +68,19 @@ class Property(models.Model):
     visit_ids = fields.One2many('property.visit', 'property_id', string='Visites Programmées')
     visit_count = fields.Integer('Nombre de Visites', compute='_compute_visit_count',store=True) #store pour stocker le résultat dans la base de données
     
+    # Offres
+    offer_ids = fields.One2many('property.offer', 'property_id', string="Offres Reçues")
+    offer_count = fields.Integer(string="Nb. Offres", compute="_compute_offer_count", store=True)
+
     # Images
     image_main = fields.Image('Image Principale', help="Image principale affichée dans les listes et kanbans.")
     image_ids = fields.One2many('property.image', 'property_id', string='Images')
     
+    @api.depends('offer_ids')
+    def _compute_offer_count(self):
+        for record in self:
+            record.offer_count = len(record.offer_ids)
+
     @api.model
     def create(self, vals):
         if vals.get('reference', 'New') == 'New' or vals.get('reference', _('Nouveau')) == _('Nouveau'): # Gère "New" ou sa traduction
@@ -90,11 +99,112 @@ class Property(models.Model):
         self.state = 'reserved'
     
     def action_sold(self):
-        self.state = 'sold'
+        for prop in self:
+            prop.state = 'sold'
+            prop.message_post(body=_("Propriété marquée comme VENDUE."))
+            
+            # Rechercher un mandat actif ou en brouillon pour cette propriété
+            active_mandate = self.env['property.mandate'].search([
+                ('property_id', '=', prop.id),
+                ('state', 'in', ['draft', 'active'])
+            ], limit=1)
+
+            if active_mandate:
+                if active_mandate.transaction_type in ['sale', 'both']:
+                    # Le mandat correspond à une vente, on peut le marquer comme complété pour la vente
+                    active_mandate.action_mark_sold_rented() # Cette méthode mettra l'état et appellera la génération de commission
+                    prop.message_post(body=_(f"Le mandat associé {active_mandate.reference} a été mis à jour pour refléter la vente."))
+                else: # Le mandat était uniquement pour location, mais le bien est vendu
+                    active_mandate.write({'state': 'completed_other_way'}) # Ou un autre état pour indiquer une clôture non standard
+                    prop.message_post(body=_(f"Le mandat de location {active_mandate.reference} a été clôturé car la propriété a été vendue."))
+            else:
+                prop.message_post(body=_("Aucun mandat actif trouvé à mettre à jour pour cette vente."))
     
     def action_rented(self):
-        self.state = 'rented'
-    
+        for prop in self:
+            prop.state = 'rented'
+            prop.message_post(body=_("Propriété marquée comme LOUÉE."))
+
+            active_mandate = self.env['property.mandate'].search([
+                ('property_id', '=', prop.id),
+                ('state', 'in', ['draft', 'active'])
+            ], limit=1)
+
+            if active_mandate:
+                if active_mandate.transaction_type in ['rent', 'both']:
+                    active_mandate.action_mark_sold_rented()
+                    prop.message_post(body=_(f"Le mandat associé {active_mandate.reference} a été mis à jour pour refléter la location."))
+                else: # Le mandat était uniquement pour vente, mais le bien est loué
+                    active_mandate.write({'state': 'completed_other_way'})
+                    prop.message_post(body=_(f"Le mandat de vente {active_mandate.reference} a été clôturé car la propriété a été louée."))
+            else:
+                prop.message_post(body=_("Aucun mandat actif trouvé à mettre à jour pour cette location."))
+
+
+    #ici ma fonction pour créer un mandat à partir d'une propriété réservée
+    def action_create_mandate_for_reserved_property(self):
+        self.ensure_one() # S'assurer qu'on travaille sur une seule propriété
+
+        if self.state != 'reserved':
+            raise UserError(_("Un mandat ne peut être créé pour cette action que si la propriété est à l'état 'Réservé'."))
+
+        # Vérifier si un mandat actif ou en brouillon n'existe pas déjà pour éviter les doublons
+        # (Ceci est une vérification optionnelle mais une bonne pratique)
+        existing_mandate = self.env['property.mandate'].search([
+            ('property_id', '=', self.id),
+            ('state', 'in', ['draft', 'active']) # Ou les états qui indiquent un mandat en cours
+        ], limit=1)
+
+        if existing_mandate:
+            # Option 1: Ouvrir le mandat existant
+            # return {
+            #     'type': 'ir.actions.act_window',
+            #     'res_model': 'property.mandate',
+            #     'view_mode': 'form',
+            #     'res_id': existing_mandate.id,
+            #     'target': 'current',
+            # }
+            # Option 2: Lever une erreur
+            raise UserError(_("Un mandat (Réf: %s) existe déjà pour cette propriété à l'état '%s'.") % (existing_mandate.reference, existing_mandate.state))
+
+
+        # Pré-remplir les valeurs pour le nouveau mandat
+        # Trouver l'offre acceptée pour pré-remplir le prix du mandat, si possible
+        accepted_offer = self.env['property.offer'].search([
+            ('property_id', '=', self.id),
+            ('state', '=', 'accepted')
+        ], order='offer_date desc', limit=1) # Prendre la plus récente offre acceptée
+
+        mandate_price_to_use = self.sale_price if self.transaction_type in ['sale', 'both'] else self.rent_price
+        if accepted_offer:
+            mandate_price_to_use = accepted_offer.offer_price
+
+        mandate_vals = {
+            'property_id': self.id,
+            # 'owner_id': self.owner_id.id, # owner_id sur le mandat est related=property_id.owner_id, donc pas besoin ici
+            'agent_id': self.agent_id.id or self.env.user.id,
+            # 'transaction_type': self.transaction_type, # transaction_type sur mandat est related, pas besoin ici
+            'mandate_price': mandate_price_to_use,
+            'start_date': fields.Date.today(),
+            # 'state': 'draft', # L'état par défaut du mandat est 'draft'
+            # Vous pouvez ajouter d'autres valeurs par défaut si pertinent
+        }
+        
+        mandate = self.env['property.mandate'].create(mandate_vals)
+        
+        self.message_post(body=_(f"Mandat <a href='#' data-oe-model='property.mandate' data-oe-id='{mandate.id}'>{mandate.reference}</a> créé à partir de la propriété réservée."))
+
+        # Ouvrir le formulaire du mandat nouvellement créé
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'property.mandate',
+            'view_mode': 'form',
+            'res_id': mandate.id,
+            'target': 'current', # Ouvrir dans la même fenêtre
+            'context': self.env.context, # Passer le contexte actuel
+        }
+        
+    # ici on ajoute une action ppour visualiser les visites associées à cette propriété
     def action_view_visits(self):
         return {
             'type': 'ir.actions.act_window',

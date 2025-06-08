@@ -8,9 +8,11 @@
             <form string="Mandat de Propriété">
                 <header>
                     <button name="action_activate" string="Activer" type="object" class="oe_highlight" invisible="state != 'draft'"/>
-                    <button name="action_mark_sold_rented" string="Marquer Vendu/Loué" type="object" class="oe_highlight" invisible="state != 'active'"/>
+                    <!-- <button name="action_mark_sold_rented" string="Marquer Vendu/Loué (sous mandat)" type="object" class="oe_highlight" invisible="state != 'active'"/> -->
                     <button name="action_terminate" string="Résilier" type="object" invisible="state not in ['draft', 'active']"/>
                     <button name="action_reset_to_draft" string="Remettre en Brouillon" type="object" invisible="state not in ['terminated', 'expired', 'completed_other_way']"/>
+                    <button name="action_generate_commission_sale_order" string="Voir/Générer Commande Commission" type="object" class="oe_highlight" invisible="state != 'sold_rented_under_mandate'"/>
+                    
                     <field name="state" widget="statusbar" statusbar_visible="draft,active,sold_rented_under_mandate,completed_other_way,expired,terminated"/>
                 </header>
                 <sheet>

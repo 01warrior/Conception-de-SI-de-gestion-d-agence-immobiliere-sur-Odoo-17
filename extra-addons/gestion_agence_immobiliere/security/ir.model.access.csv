@@ -4,3 +4,4 @@ access_property_manager,property.property.manager,model_property_property,gestio
 access_property_image_manager,property.image.manager,model_property_image,gestion_agence_immobiliere.group_real_estate_manager,1,1,1,1
 access_property_mandate_manager,property.mandate.manager,model_property_mandate,gestion_agence_immobiliere.group_real_estate_manager,1,1,1,1
 access_property_visit_manager,property.visit.manager,model_property_visit,gestion_agence_immobiliere.group_real_estate_manager,1,1,1,1
+access_property_offer_manager,property.offer.manager,model_property_offer,gestion_agence_immobiliere.group_real_estate_manager,1,1,1,1

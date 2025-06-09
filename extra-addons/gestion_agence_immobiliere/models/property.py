@@ -215,6 +215,17 @@ class Property(models.Model):
             'context': {'default_property_id': self.id,'default_agent_id': self.agent_id.id if self.agent_id else self.env.user.id}
         }
 
+    def action_view_offers(self):
+        self.ensure_one() # S'assurer que l'action est appelée sur un seul enregistrement
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Offres pour %s') % self.title, # Titre de la fenêtre
+            'res_model': 'property.offer',         # Le modèle à afficher
+            'view_mode': 'tree,form',              # Les vues à utiliser
+            'domain': [('property_id', '=', self.id)], # Filtrer pour afficher uniquement les offres de CETTE propriété
+            'context': {'default_property_id': self.id} # Pré-remplir la propriété si on crée une nouvelle offre depuis cette vue
+        }
+
 class PropertyImage(models.Model):
     _name = 'property.image' 
     _description = 'Images Propriété'

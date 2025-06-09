@@ -9,7 +9,7 @@
             <field name="list_price">0.0</field> <!-- Le prix sera défini dynamiquement -->
             <field name="standard_price">0.0</field> <!-- Coût, si applicable -->
             <field name="categ_id" ref="product.product_category_all"/> <!-- Catégorie de base -->
-            <!-- Vous pouvez ajouter une catégorie spécifique si vous en avez une pour les services -->
+
             <field name="taxes_id" eval="False"/> <!-- Pas de taxes par défaut, à gérer selon la fiscalité -->
             <field name="description_sale">Commission pour services de vente immobilière.</field>
         </record>

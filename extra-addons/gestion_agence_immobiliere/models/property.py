@@ -13,7 +13,7 @@ class Property(models.Model):
     _description = 'Propriété Immobilière'
     _order = 'create_date desc'
     _rec_name = 'title'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin'] 
 
     # Informations générales
     title = fields.Char('Titre', required=True)

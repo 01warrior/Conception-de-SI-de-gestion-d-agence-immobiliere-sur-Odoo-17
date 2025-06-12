@@ -47,7 +47,7 @@
                 </page>
             </xpath>
 
-            <!-- Optionnel: Ajouter certains champs booléens directement sous la section 'Commercial' pour une meilleure visibilité -->
+        
             <xpath expr="//page[@name='sales_purchases']//group[@name='misc']" position="after">
                  <group string="Statut Immobilier (Raccourci)" name="quick_real_estate_status" col="4">
                     <field name="is_property_owner"/>

@@ -23,9 +23,6 @@
         'base', 
         'mail',
         'sale_management',
-        # 'sale', 
-        # 'purchase', 
-        # 'account', 
         'calendar',
         'contacts'
     ],

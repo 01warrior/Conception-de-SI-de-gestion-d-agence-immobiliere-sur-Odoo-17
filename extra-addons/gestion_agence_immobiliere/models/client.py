@@ -1,7 +1,7 @@
 from odoo import models, fields, api, _ #_ pour la traduction si besoin
 
-class ResPartnerPropertyExtension(models.Model): # Nom de classe descriptif
-    _inherit = 'res.partner' # IMPORTANT: Indique que l'on étend un modèle existant
+class ResPartnerPropertyExtension(models.Model):
+    _inherit = 'res.partner' 
 
     # --- Champs pour identifier le rôle du contact dans l'immobilier ---
     is_property_owner = fields.Boolean(string='Est un Propriétaire')
@@ -38,13 +38,3 @@ class ResPartnerPropertyExtension(models.Model): # Nom de classe descriptif
     min_surface_desired = fields.Float(string='Surface Minimum Désirée (m²)')
     min_rooms_desired = fields.Integer(string='Nombre de Pièces Minimum Désiré')
     min_bedrooms_desired = fields.Integer(string='Nombre de Chambres Minimum Désiré')
-
-    # --- Champs relationnels (on les décommentera et implémentera plus tard, Phase avancée) ---
-    # owned_property_ids = fields.One2many('property.property', 'owner_id', string='Propriétés Possédées')
-    # Ceci nécessitera que le champ 'owner_id' sur 'property.property' soit bien défini.
-
-    # visit_ids_as_client = fields.One2many('property.visit', 'client_id', string='Visites Effectuées en tant que Client')
-    # Ceci nécessitera la création du modèle 'property.visit' et du champ 'client_id'.
-
-    # mandate_ids_as_owner = fields.One2many('property.mandate', 'owner_id', string='Mandats en tant que Propriétaire')
-    # Ceci nécessitera la création du modèle 'property.mandate'.

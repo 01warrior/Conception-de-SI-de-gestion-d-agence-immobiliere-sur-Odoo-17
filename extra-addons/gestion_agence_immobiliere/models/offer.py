@@ -16,6 +16,7 @@ class PropertyOffer(models.Model):
         required=True,
         domain="[('state', 'in', ['available', 'reserved'])]" # On ne peut faire une offre que sur un bien dispo/réservé
     )
+    
     partner_id = fields.Many2one('res.partner', string='Client Offrant', required=True)
     
     offer_price = fields.Monetary(string="Montant de l'Offre", required=True, currency_field='currency_id')
